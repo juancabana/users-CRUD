@@ -19,7 +19,7 @@ jobs:
       - name: Set up Node.js version
         uses: actions/setup-node@v3
         with:
-          node-version: '20-lts'
+          node-version: '18.x'
 
       - name: npm install, build, and test
         run: |
@@ -42,7 +42,9 @@ jobs:
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-    
+    permissions:
+      id-token: write #This is required for requesting the JWT
+
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
@@ -52,6 +54,13 @@ jobs:
       - name: Unzip artifact for deployment
         run: unzip release.zip
       
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_CFCF27409F8C49B2AF9A0D9672EEC02C }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_277E74C5B5D64CACA017C1FD608F3F3B }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_B4FAF62BDDF64B2588DD26F285748A83 }}
+
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
@@ -59,4 +68,4 @@ jobs:
           app-name: 'users'
           slot-name: 'Production'
           package: .
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_2C0CE2527F2645A280C1F05817FD214F }}
+          
